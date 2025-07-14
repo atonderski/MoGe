@@ -195,7 +195,8 @@ def align_depth_affine(depth_src: torch.Tensor, depth_tgt: torch.Tensor, weight:
         depth_tgt_anchored = depth_tgt[anchors_where_batch, :] - depth_tgt_anchor[..., None]            # (anchors, n)
         weight_anchored = weight[anchors_where_batch, :]                                                # (anchors, n)
 
-        scale, loss, index = align(depth_src_anchored, depth_tgt_anchored, weight_anchored, trunc)      # (anchors)
+        MAX_ELEMENTS = 2 ** 20
+        scale, loss, index = split_batch_fwd(align, MAX_ELEMENTS // n, depth_src_anchored, depth_tgt_anchored, weight_anchored, trunc)
 
         loss, index_anchor = scatter_min(size=batch_size, dim=0, index=anchors_where_batch, src=loss)   # (batch_size,)
 
